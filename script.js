@@ -39,6 +39,7 @@ function calculateUnion() {
     result[x] = Math.max(B[x], C[x]);
   });
   displayResult("Union", result);
+  displayChart("Union", result);
 }
 
 function calculateIntersection() {
@@ -49,16 +50,87 @@ function calculateIntersection() {
     result[x] = Math.min(B[x], C[x]);
   });
   displayResult("Intersection", result);
+  displayChart("Intersection", result);
+}
+
+function calculateComplement() {
+  const A = getFuzzySet("setB");
+  const result = {};
+  U.forEach((x) => {
+    result[x] = 1 - (A[x] || 0);
+  });
+  displayResult("Complement", result);
+  displayChart("Complement", result);
 }
 
 function displayResult(operation, result) {
   const resultContainer = document.getElementById("result");
   resultContainer.innerHTML = `<h3>${operation} Result:</h3>`;
+
+  let expression = `${operation} = {`;
+
   for (const [key, value] of Object.entries(result)) {
-    const p = document.createElement("p");
-    p.textContent = `x = ${key}, μ = ${value.toFixed(2)}`;
-    resultContainer.appendChild(p);
+    expression += `${value.toFixed(2)}|${key}, `;
   }
+
+  expression = expression.slice(0, -2);
+  expression += "}";
+
+  const p = document.createElement("p");
+  p.textContent = expression;
+  resultContainer.appendChild(p);
+}
+
+function displayChart(operation, result) {
+  const resultContainer = document.getElementById("chartresult");
+  resultContainer.innerHTML = `<canvas id="chartCanvas"></canvas>`;
+
+  const ctx = document.getElementById("chartCanvas").getContext("2d");
+
+  const labels = Object.keys(result).map(Number);
+  const data = Object.values(result);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: `${operation} Result`,
+          data: data,
+          backgroundColor: "rgba(0, 123, 255, 0.2)",
+          borderColor: "rgba(0, 123, 255, 1)",
+          borderWidth: 2,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Elements (x)",
+          },
+        },
+        y: {
+          min: 0,
+          max: 1,
+          title: {
+            display: true,
+            text: "Membership Degree (μ)",
+          },
+        },
+      },
+    },
+  });
 }
 
 initializeInputs();
